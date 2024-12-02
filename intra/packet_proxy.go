@@ -44,7 +44,7 @@ func newIntraPacketProxy(
 		return nil, errors.New("dns is required")
 	}
 
-	pl := &transport.UDPPacketListener{
+	pl := &transport.UDPListener{
 		ListenConfig: *protect.MakeListenConfig(protector),
 	}
 

@@ -50,17 +50,17 @@ type outlinetunnel struct {
 	isUDPEnabled bool // Whether the tunnel supports proxying UDP.
 }
 
-// newTunnel connects a tunnel to a Shadowsocks proxy server and returns an `outline.Tunnel`.
+// newTunnel connects a tunnel to a socks5 proxy server and returns an `outline.Tunnel`.
 //
-// `host` is the IP or domain of the Shadowsocks proxy.
-// `port` is the port of the Shadowsocks proxy.
-// `password` is the password of the Shadowsocks proxy.
-// `cipher` is the encryption cipher used by the Shadowsocks proxy.
-// `isUDPEnabled` indicates if the Shadowsocks proxy and the network support proxying UDP traffic.
+// `host` is the IP or domain of the socks5 proxy.
+// `port` is the port of the socks5 proxy.
+// `password` is the password of the socks5 proxy.
+// `cipher` is the encryption cipher used by the socks5 proxy.
+// `isUDPEnabled` indicates if the socks5 proxy and the network support proxying UDP traffic.
 // `tunWriter` is used to output packets back to the TUN device.  OutlineTunnel.Disconnect() will close `tunWriter`.
 func newTunnel(streamDialer transport.StreamDialer, packetDialer transport.PacketListener, isUDPEnabled bool, tunWriter io.WriteCloser) (Tunnel, error) {
 	if tunWriter == nil {
-		return nil, errors.New("Must provide a TUN writer")
+		return nil, errors.New("must provide a TUN writer")
 	}
 	core.RegisterOutputFn(func(data []byte) (int, error) {
 		return tunWriter.Write(data)
@@ -83,7 +83,7 @@ func (t *outlinetunnel) UpdateUDPSupport() bool {
 	return isUDPEnabled
 }
 
-// Registers UDP and TCP Shadowsocks connection handlers to the tunnel's host and port.
+// Registers UDP and TCP socks5 connection handlers to the tunnel's host and port.
 // Registers a DNS/TCP fallback UDP handler when UDP is disabled.
 func (t *outlinetunnel) registerConnectionHandlers() {
 	var udpHandler core.UDPConnHandler

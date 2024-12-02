@@ -41,7 +41,7 @@ type retrier struct {
 	// again so locking is no longer required for reads.
 	mutex   sync.Mutex
 	dialer  *net.Dialer
-	network string
+	// network string
 	addr    *net.TCPAddr
 	// conn is the current underlying connection.  It is only modified by the reader
 	// thread, so the reader functions may access it without acquiring a lock.
@@ -262,8 +262,6 @@ func (r *retrier) Write(b []byte) (int, error) {
 			// by the retry procedure.  Block until we have a final socket (which will
 			// already have replayed b[:n]), and retry.
 			<-r.retryCompleteFlag
-			r.mutex.Lock()
-			r.mutex.Unlock()
 			m, err := r.conn.Write(b[n:])
 			return n + m, err
 		}

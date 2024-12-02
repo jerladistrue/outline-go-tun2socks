@@ -52,7 +52,7 @@ func (t *tunnel) Disconnect() {
 
 func (t *tunnel) Write(data []byte) (int, error) {
 	if !t.isConnected {
-		return 0, errors.New("Failed to write, network stack closed")
+		return 0, errors.New("failed to write, network stack closed")
 	}
 	return t.lwipStack.Write(data)
 }

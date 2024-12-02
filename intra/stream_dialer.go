@@ -38,6 +38,11 @@ type intraStreamDialer struct {
 	sniReporter      *tcpSNIReporter
 }
 
+// DialStream implements transport.StreamDialer
+func (sd *intraStreamDialer) DialStream(ctx context.Context, addr string) (transport.StreamConn, error) {
+	return sd.Dial(ctx, addr)
+}
+
 var _ transport.StreamDialer = (*intraStreamDialer)(nil)
 
 func newIntraStreamDialer(
@@ -102,10 +107,10 @@ func (sd *intraStreamDialer) dial(ctx context.Context, dest netip.AddrPort, stat
 			return split.DialWithSplitRetry(sd.dialer, net.TCPAddrFromAddrPort(dest), stats.Retry)
 		}
 	} else {
-		tcpsd := &transport.TCPStreamDialer{
+		tcpsd := &transport.TCPDialer{
 			Dialer: *sd.dialer,
 		}
-		return tcpsd.Dial(ctx, dest.String())
+		return tcpsd.DialStream(ctx, dest.String())
 	}
 }
 

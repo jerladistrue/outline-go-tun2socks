@@ -100,7 +100,7 @@ func (s *setup) sendDown() {
 	send(s.serverSide, s.clientSide, s.t)
 }
 
-func closeRead(closed, blocked DuplexConn, t *testing.T) {
+func closeRead(closed, _ DuplexConn, _ *testing.T) {
 	closed.CloseRead()
 	// TODO: Figure out if this is detectable on the opposite side.
 }

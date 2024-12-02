@@ -34,7 +34,7 @@ const (
 	bufferLength        = 512
 )
 
-// authenticationError is used to signal failed authentication to the Shadowsocks proxy.
+// authenticationError is used to signal failed authentication to the socks5 proxy.
 type authenticationError struct {
 	error
 }
@@ -44,7 +44,7 @@ type reachabilityError struct {
 	error
 }
 
-// CheckConnectivity determines whether the Shadowsocks proxy can relay TCP and UDP traffic under
+// CheckConnectivity determines whether the socks5 proxy can relay TCP and UDP traffic under
 // the current network. Parallelizes the execution of TCP and UDP checks, selects the appropriate
 // error code to return accounting for transient network failures.
 // Returns an error if an unexpected error ocurrs.
@@ -75,7 +75,7 @@ func CheckConnectivity(client *outline.Client) (neterrors.Error, error) {
 	return neterrors.Unexpected, tcpErr
 }
 
-// CheckUDPConnectivityWithDNS determines whether the Shadowsocks proxy represented by `client` and
+// CheckUDPConnectivityWithDNS determines whether the socks5 proxy represented by `client` and
 // the network support UDP traffic by issuing a DNS query though a resolver at `resolverAddr`.
 // Returns nil on success or an error on failure.
 func CheckUDPConnectivityWithDNS(client transport.PacketListener, resolverAddr net.Addr) error {
@@ -119,7 +119,7 @@ func CheckTCPConnectivityWithHTTP(dialer transport.StreamDialer, targetURL strin
 	if !hasPort(targetAddr) {
 		targetAddr = net.JoinHostPort(targetAddr, "80")
 	}
-	conn, err := dialer.Dial(ctx, targetAddr)
+	conn, err := dialer.DialStream(ctx, targetAddr)
 	if err != nil {
 		return &reachabilityError{err}
 	}

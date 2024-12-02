@@ -72,7 +72,7 @@ func scan(ips []string, wantV4 bool) string {
 // by the first address of a different family if there are none of the same.
 func replaceIP(addr string, ips []string) (string, error) {
 	if len(ips) == 0 {
-		return "", errors.New("No resolvers available")
+		return "", errors.New("no resolvers available")
 	}
 	orighost, port, err := net.SplitHostPort(addr)
 	if err != nil {
@@ -80,7 +80,7 @@ func replaceIP(addr string, ips []string) (string, error) {
 	}
 	origip := net.ParseIP(orighost)
 	if origip == nil {
-		return "", fmt.Errorf("Can't parse resolver IP: %s", orighost)
+		return "", fmt.Errorf("can't parse resolver IP: %s", orighost)
 	}
 	isV4 := origip.To4() != nil
 	newIP := scan(ips, isV4)

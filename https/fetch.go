@@ -20,7 +20,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -72,7 +72,7 @@ func Fetch(req Request) (*Response, error) {
 		Timeout: 30 * time.Second,
 	}
 
-	if req.TrustedCertFingerprint != nil && len(req.TrustedCertFingerprint) > 0 {
+	if req.TrustedCertFingerprint != nil {
 		client.Transport = &http.Transport{
 			// Perform custom server certificate verification by pinning the
 			// trusted certificate fingerprint.
@@ -88,7 +88,7 @@ func Fetch(req Request) (*Response, error) {
 		return nil, err
 	}
 	res := &Response{nil, httpres.StatusCode, redirectURL}
-	res.Data, err = ioutil.ReadAll(httpres.Body)
+	res.Data, err = io.ReadAll(httpres.Body)
 	httpres.Body.Close()
 	return res, err
 }

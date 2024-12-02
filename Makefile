@@ -24,16 +24,16 @@ android: $(BUILDDIR)/android/tun2socks.aar
 
 $(BUILDDIR)/android/tun2socks.aar: $(GOMOBILE)
 	mkdir -p "$(BUILDDIR)/android"
-	$(ANDROID_BUILD_CMD) -o "$@" $(IMPORT_PATH)/outline/tun2socks $(IMPORT_PATH)/outline/shadowsocks
+	$(ANDROID_BUILD_CMD) -o "$@" $(IMPORT_PATH)/outline/tun2socks $(IMPORT_PATH)/outline/socks5
 
 # TODO(fortuna): -s strips symbols and is obsolete. Why are we using it?
 $(BUILDDIR)/ios/Tun2socks.xcframework: $(GOMOBILE)
   # -iosversion should match what outline-client supports.
-	$(GOBIND) -iosversion=11.0 -target=ios,iossimulator -o $@ -ldflags '-s -w' -bundleid org.outline.tun2socks $(IMPORT_PATH)/outline/tun2socks $(IMPORT_PATH)/outline/shadowsocks
+	$(GOBIND) -iosversion=11.0 -target=ios,iossimulator -o $@ -ldflags '-s -w' -bundleid org.outline.tun2socks $(IMPORT_PATH)/outline/tun2socks $(IMPORT_PATH)/outline/socks5
 
 $(BUILDDIR)/macos/Tun2socks.xcframework: $(GOMOBILE)
   # MACOSX_DEPLOYMENT_TARGET and -iosversion should match what outline-client supports.
-	export MACOSX_DEPLOYMENT_TARGET=10.14; $(GOBIND) -iosversion=13.1 -target=macos,maccatalyst -o $@ -ldflags '-s -w' -bundleid org.outline.tun2socks $(IMPORT_PATH)/outline/tun2socks $(IMPORT_PATH)/outline/shadowsocks
+	export MACOSX_DEPLOYMENT_TARGET=10.14; $(GOBIND) -iosversion=13.1 -target=macos,maccatalyst -o $@ -ldflags '-s -w' -bundleid org.outline.tun2socks $(IMPORT_PATH)/outline/tun2socks $(IMPORT_PATH)/outline/socks5
 
 apple: $(BUILDDIR)/apple/Tun2socks.xcframework
 

@@ -40,9 +40,9 @@ type udpHandler struct {
 	conns map[core.UDPConn]net.PacketConn
 }
 
-// NewUDPHandler returns a Shadowsocks UDP connection handler.
+// NewUDPHandler returns a socks5 UDP connection handler.
 //
-// `client` provides the Shadowsocks functionality.
+// `client` provides the socks5 functionality.
 // `timeout` is the UDP read and write timeout.
 func NewUDPHandler(dialer transport.PacketListener, timeout time.Duration) core.UDPConnHandler {
 	return &udpHandler{

@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"net"
 	"net/http"
@@ -103,7 +102,7 @@ type transport struct {
 }
 
 // Wait up to three seconds for the TCP handshake to complete.
-const tcpTimeout time.Duration = 3 * time.Second
+// const tcpTimeout time.Duration = 3 * time.Second
 
 func (t *transport) dial(network, addr string) (net.Conn, error) {
 	log.Debugf("Dialing %s", addr)
@@ -166,7 +165,7 @@ func NewTransport(rawurl string, addrs []string, dialer *net.Dialer, auth Client
 		return nil, err
 	}
 	if parsedurl.Scheme != "https" {
-		return nil, fmt.Errorf("Bad scheme: %s", parsedurl.Scheme)
+		return nil, fmt.Errorf("bad scheme: %s", parsedurl.Scheme)
 	}
 	// Resolve the hostname and put those addresses first.
 	portStr := parsedurl.Port()
@@ -193,7 +192,7 @@ func NewTransport(rawurl string, addrs []string, dialer *net.Dialer, auth Client
 		ips.Add(addr)
 	}
 	if ips.Empty() {
-		return nil, fmt.Errorf("No IP addresses for %s", t.hostname)
+		return nil, fmt.Errorf("no IP addresses for %s", t.hostname)
 	}
 
 	// Supply a client certificate during TLS handshakes.
@@ -254,7 +253,7 @@ func (t *transport) doQuery(q []byte) (response []byte, server *net.TCPAddr, qer
 	t.hangoverLock.RUnlock()
 	if inHangover {
 		response = tryServfail(q)
-		qerr = &queryError{HTTPError, errors.New("Forwarder is in servfail hangover")}
+		qerr = &queryError{HTTPError, errors.New("forwarder is in servfail hangover")}
 		return
 	}
 
@@ -284,10 +283,10 @@ func (t *transport) doQuery(q []byte) (response []byte, server *net.TCPAddr, qer
 			if binary.BigEndian.Uint16(response) == 0 {
 				binary.BigEndian.PutUint16(response, id)
 			} else {
-				qerr = &queryError{BadResponse, errors.New("Nonzero response ID")}
+				qerr = &queryError{BadResponse, errors.New("nonzero response ID")}
 			}
 		} else {
-			qerr = &queryError{BadResponse, fmt.Errorf("Response length is %d", len(response))}
+			qerr = &queryError{BadResponse, fmt.Errorf("response length is %d", len(response))}
 		}
 	}
 
@@ -399,7 +398,7 @@ func (t *transport) sendRequest(id uint16, req *http.Request) (response []byte, 
 		return
 	}
 	log.Debugf("%d Got response", id)
-	response, err = ioutil.ReadAll(httpResponse.Body)
+	response, err = io.ReadAll(httpResponse.Body)
 	if err != nil {
 		qerr = &queryError{BadResponse, err}
 		return
@@ -479,7 +478,7 @@ func forwardQuery(t Transport, q []byte, c io.Writer) error {
 	}
 	rlen := len(resp)
 	if rlen > math.MaxUint16 {
-		return fmt.Errorf("Oversize response: %d", rlen)
+		return fmt.Errorf("oversize response: %d", rlen)
 	}
 	// Use a combined write to ensure atomicity.  Otherwise, writes from two
 	// responses could be interleaved.
@@ -491,7 +490,7 @@ func forwardQuery(t Transport, q []byte, c io.Writer) error {
 		return err
 	}
 	if int(n) != len(rlbuf) {
-		return fmt.Errorf("Incomplete response write: %d < %d", n, len(rlbuf))
+		return fmt.Errorf("incomplete response write: %d < %d", n, len(rlbuf))
 	}
 	return qerr
 }

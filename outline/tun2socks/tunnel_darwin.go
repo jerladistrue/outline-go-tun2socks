@@ -20,7 +20,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/Jigsaw-Code/outline-go-tun2socks/outline/shadowsocks"
+	"github.com/Jigsaw-Code/outline-go-tun2socks/outline/socks5"
 )
 
 // TunWriter is an interface that allows for outputting packets to the TUN (VPN).
@@ -42,15 +42,15 @@ func init() {
 	}()
 }
 
-// ConnectShadowsocksTunnel reads packets from a TUN device and routes it to a Shadowsocks proxy server.
+// Connectsocks5Tunnel reads packets from a TUN device and routes it to a socks5 proxy server.
 // Returns an OutlineTunnel instance that should be used to input packets to the tunnel.
 //
 // `tunWriter` is used to output packets to the TUN (VPN).
-// `client` is the Shadowsocks client (created by [shadowsocks.NewClient]).
+// `client` is the socks5 client (created by [socks5.NewClient]).
 // `isUDPEnabled` indicates whether the tunnel and/or network enable UDP proxying.
 //
 // Sets an error if the tunnel fails to connect.
-func ConnectShadowsocksTunnel(tunWriter TunWriter, client *shadowsocks.Client, isUDPEnabled bool) (Tunnel, error) {
+func ConnectSocks5Tunnel(tunWriter TunWriter, client *socks5.Client, isUDPEnabled bool) (Tunnel, error) {
 	if tunWriter == nil {
 		return nil, errors.New("must provide a TunWriter")
 	} else if client == nil {

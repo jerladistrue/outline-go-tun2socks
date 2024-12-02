@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// This package provides support of Shadowsocks client and the configuration
+// This package provides support of socks5 client and the configuration
 // that can be used by Outline Client.
 //
 // All data structures and functions will also be exposed as libraries that
 // non-golang callers can use (for example, C/Java/Objective-C).
-package shadowsocks
+package socks5
 
 import (
 	"fmt"
@@ -27,48 +27,14 @@ import (
 
 	"github.com/Jigsaw-Code/outline-go-tun2socks/outline"
 	"github.com/Jigsaw-Code/outline-go-tun2socks/outline/connectivity"
-	"github.com/Jigsaw-Code/outline-go-tun2socks/outline/internal/utf8"
 	"github.com/Jigsaw-Code/outline-sdk/transport"
-	"github.com/Jigsaw-Code/outline-sdk/transport/shadowsocks"
-	"github.com/eycorsican/go-tun2socks/common/log"
+	"github.com/Jigsaw-Code/outline-sdk/transport/socks5"
 )
 
-// A client object that can be used to connect to a remote Shadowsocks proxy.
+// A client object that can be used to connect to a remote socks5 proxy.
 type Client outline.Client
 
-// NewClient creates a new Shadowsocks client from a non-nil configuration.
-//
-// Deprecated: Please use NewClientFromJSON.
-func NewClient(config *Config) (*Client, error) {
-	if config == nil {
-		return nil, fmt.Errorf("shadowsocks configuration is required")
-	}
-	return newShadowsocksClient(config.Host, config.Port, config.CipherName, config.Password, config.Prefix)
-}
-
-// NewClientFromJSON creates a new Shadowsocks client from a JSON formatted
-// configuration.
-func NewClientFromJSON(configJSON string) (*Client, error) {
-	config, err := parseConfigFromJSON(configJSON)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse Shadowsocks configuration JSON: %w", err)
-	}
-	var prefixBytes []byte = nil
-	if len(config.Prefix) > 0 {
-		if p, err := utf8.DecodeUTF8CodepointsToRawBytes(config.Prefix); err != nil {
-			return nil, fmt.Errorf("failed to parse prefix string: %w", err)
-		} else {
-			prefixBytes = p
-		}
-	}
-	return newShadowsocksClient(config.Host, int(config.Port), config.Method, config.Password, prefixBytes)
-}
-
-func newShadowsocksClient(host string, port int, cipherName, password string, prefix []byte) (*Client, error) {
-	if err := validateConfig(host, port, cipherName, password); err != nil {
-		return nil, fmt.Errorf("invalid Shadowsocks configuration: %w", err)
-	}
-
+func NewSocks5Client(host string, port int) (*Client, error) {
 	// TODO: consider using net.LookupIP to get a list of IPs, and add logic for optimal selection.
 	proxyIP, err := net.ResolveIPAddr("ip", host)
 	if err != nil {
@@ -76,24 +42,19 @@ func newShadowsocksClient(host string, port int, cipherName, password string, pr
 	}
 	proxyAddress := net.JoinHostPort(proxyIP.String(), fmt.Sprint(port))
 
-	cryptoKey, err := shadowsocks.NewEncryptionKey(cipherName, password)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create Shadowsocks cipher: %w", err)
-	}
-
-	streamDialer, err := shadowsocks.NewStreamDialer(&transport.TCPEndpoint{Address: proxyAddress}, cryptoKey)
+	endpoint := &transport.TCPEndpoint{Address: proxyAddress}
+	streamDialer, err := socks5.NewClient(endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create StreamDialer: %w", err)
 	}
-	if len(prefix) > 0 {
-		log.Debugf("Using salt prefix: %s", string(prefix))
-		streamDialer.SaltGenerator = shadowsocks.NewPrefixSaltGenerator(prefix)
-	}
 
-	packetListener, err := shadowsocks.NewPacketListener(&transport.UDPEndpoint{Address: proxyAddress}, cryptoKey)
+	// Create a second SOCKS5 client for UDP using the same TCP endpoint
+	packetListener, err := socks5.NewClient(endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create PacketListener: %w", err)
 	}
+	// Enable UDP support on the SOCKS5 client
+	packetListener.EnablePacket(&transport.UDPDialer{})
 
 	return &Client{StreamDialer: streamDialer, PacketListener: packetListener}, nil
 }
@@ -108,7 +69,7 @@ const (
 	Unreachable                 = 5
 	VpnStartFailure             = 6  // Unused
 	IllegalConfiguration        = 7  // Electron only
-	ShadowsocksStartFailure     = 8  // Unused
+	socks5StartFailure          = 8  // Unused
 	ConfigureSystemProxyFailure = 9  // Unused
 	NoAdminPermissions          = 10 // Unused
 	UnsupportedRoutingTable     = 11 // Unused
@@ -117,7 +78,7 @@ const (
 
 const reachabilityTimeout = 10 * time.Second
 
-// CheckConnectivity determines whether the Shadowsocks proxy can relay TCP and UDP traffic under
+// CheckConnectivity determines whether the socks5 proxy can relay TCP and UDP traffic under
 // the current network. Parallelizes the execution of TCP and UDP checks, selects the appropriate
 // error code to return accounting for transient network failures.
 // Returns an error if an unexpected error ocurrs.

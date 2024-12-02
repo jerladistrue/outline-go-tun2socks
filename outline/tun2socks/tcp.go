@@ -27,13 +27,13 @@ type tcpHandler struct {
 	dialer transport.StreamDialer
 }
 
-// NewTCPHandler returns a Shadowsocks TCP connection handler.
+// NewTCPHandler returns a socks5 TCP connection handler.
 func NewTCPHandler(client transport.StreamDialer) core.TCPConnHandler {
 	return &tcpHandler{client}
 }
 
 func (h *tcpHandler) Handle(conn net.Conn, target *net.TCPAddr) error {
-	proxyConn, err := h.dialer.Dial(context.Background(), target.String())
+	proxyConn, err := h.dialer.DialStream(context.Background(), target.String())
 	if err != nil {
 		return err
 	}
